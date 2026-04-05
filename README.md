@@ -1,4 +1,7 @@
-# FinFlow — Finance Dashboard
+
+# FinFlow
+
+# Finance Dashboard
 
 A clean, modern personal finance dashboard built with **Next.js 14**, **Tailwind CSS**, **shadcn/ui primitives**, and **Zustand** for state management.
 
@@ -23,8 +26,6 @@ npm run dev
 open http://localhost:3000
 ```
 
-The app redirects `/` → `/dashboard` automatically.
-
 ---
 
 ## 🏗️ Project Structure
@@ -34,9 +35,13 @@ finance-dashboard/
 ├── app/
 │   ├── layout.tsx          # Root layout with ThemeProvider
 │   ├── globals.css         # CSS variables, animations, utilities
-│   ├── dashboard/          # Overview page
-│   ├── transactions/       # Transactions list page
-│   └── insights/           # Analytics & insights page
+│   ├── page.tsx            # Dashboard/overview page
+│   ├── transactions/
+│   │   ├── layout.tsx      # Transactions page layout
+│   │   └── page.tsx        # Transactions list page
+│   └── insights/
+│       ├── layout.tsx      # Insights page layout
+│       └── page.tsx        # Analytics & insights page
 ├── components/
 │   ├── layout/
 │   │   ├── AppShell.tsx    # Sidebar + main content wrapper
@@ -58,7 +63,7 @@ finance-dashboard/
 ├── store/
 │   └── useFinanceStore.ts  # Zustand store (persisted to localStorage)
 └── types/
-    └── index.ts            # TypeScript interfaces
+  └── index.ts            # TypeScript interfaces
 ```
 
 ---
