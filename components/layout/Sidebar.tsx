@@ -10,7 +10,7 @@ import { useFinanceStore } from "@/store/useFinanceStore";
 import { cn } from "@/lib/utils";
 
 const nav = [
-  { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
+  { href: "/", label: "Overview", icon: LayoutDashboard },
   { href: "/transactions", label: "Transactions", icon: ArrowLeftRight },
   { href: "/insights", label: "Insights", icon: Lightbulb },
 ];
@@ -42,7 +42,7 @@ export function Sidebar() {
       {/* Nav */}
       <nav className="flex-1 py-4 px-2 space-y-1">
         {nav.map(({ href, label, icon: Icon }) => {
-          const active = pathname === href || pathname.startsWith(href + "/");
+          const active = href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(href + "/");
           return (
             <Link
               key={href}

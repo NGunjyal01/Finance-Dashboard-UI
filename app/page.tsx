@@ -1,62 +1,58 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { Plus } from "lucide-react";
+import { useMemo } from "react";
 import { useFinanceStore } from "@/store/useFinanceStore";
-import { applyFilters, computeSummary, formatCurrency } from "@/lib/utils";
+import { computeSummary, getMonthlyData, getCategoryBreakdown } from "@/lib/utils";
 import { Header } from "@/components/layout/Header";
-import { FiltersBar } from "@/components/ui/FiltersBar";
-import { TransactionTable } from "@/components/ui/TransactionTable";
-import { TransactionModal } from "@/components/ui/TransactionModal";
-import { cn } from "@/lib/utils";
+import { SummaryCards } from "@/components/ui/SummaryCards";
+import { MonthlyTrendChart } from "@/components/charts/MonthlyTrendChart";
+import { CategoryBreakdownChart } from "@/components/charts/CategoryBreakdownChart";
+import { RecentTransactions } from "@/components/ui/RecentTransactions";
+import { subMonths, parseISO, isAfter } from "date-fns";
+import { computeSummary as cs } from "@/lib/utils";
 
-export default function TransactionsPage() {
-  const { transactions, filters, role } = useFinanceStore();
-  const [modalOpen, setModalOpen] = useState(false);
-  const isAdmin = role === "admin";
+export default function DashboardPage() {
+  const { transactions } = useFinanceStore();
 
-  const filtered = useMemo(() => applyFilters(transactions, filters), [transactions, filters]);
-  const summary = useMemo(() => computeSummary(filtered), [filtered]);
+  const sorted = useMemo(() =>
+    [...transactions].sort((a, b) => b.date.localeCompare(a.date)),
+    [transactions]
+  );
+
+  const summary = useMemo(() => computeSummary(sorted), [sorted]);
+  const monthlyData = useMemo(() => getMonthlyData(sorted), [sorted]);
+  const categoryData = useMemo(() => getCategoryBreakdown(sorted), [sorted]);
+
+  const prevMonthStart = subMonths(new Date(), 2);
+  const thisMonthStart = subMonths(new Date(), 1);
+  const prevSummary = useMemo(() => computeSummary(
+    sorted.filter(t => {
+      const d = parseISO(t.date);
+      return isAfter(d, prevMonthStart) && !isAfter(d, thisMonthStart);
+    })
+  ), [sorted]);
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Header title="Transactions" subtitle={`${filtered.length} transactions`} />
-      <div className="flex-1 p-6 space-y-4">
-
-        {/* Quick stats bar */}
-        <div className="grid grid-cols-3 gap-4">
-          {[
-            { label: "Filtered Income", value: summary.income, color: "text-emerald-500" },
-            { label: "Filtered Expenses", value: summary.expenses, color: "text-rose-500" },
-            { label: "Net", value: summary.balance, color: summary.balance >= 0 ? "text-emerald-500" : "text-rose-500" },
-          ].map(s => (
-            <div key={s.label} className="bg-card border border-border rounded-xl px-4 py-3 animate-in">
-              <p className="text-xs text-muted-foreground mb-1">{s.label}</p>
-              <p className={cn("text-lg font-bold", s.color)}>{formatCurrency(s.value)}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* Filters */}
-        <FiltersBar />
-
-        {/* Add button (admin only) */}
-        {isAdmin && (
-          <div className="flex justify-end">
-            <button
-              onClick={() => setModalOpen(true)}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold transition-colors shadow-sm"
-            >
-              <Plus className="w-4 h-4" /> Add Transaction
-            </button>
+      <Header title="Overview" />
+      <div className="flex-1 p-6 space-y-6">
+        <SummaryCards
+          income={summary.income}
+          expenses={summary.expenses}
+          balance={summary.balance}
+          prevIncome={prevSummary.income}
+          prevExpenses={prevSummary.expenses}
+        />
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          <div className="xl:col-span-2">
+            <MonthlyTrendChart data={monthlyData} />
           </div>
-        )}
-
-        {/* Table */}
-        <TransactionTable transactions={filtered} />
+          <div>
+            <CategoryBreakdownChart data={categoryData} />
+          </div>
+        </div>
+        <RecentTransactions transactions={sorted} />
       </div>
-
-      <TransactionModal open={modalOpen} onClose={() => setModalOpen(false)} />
     </div>
   );
 }

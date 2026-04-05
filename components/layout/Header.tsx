@@ -1,7 +1,8 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
-import { Sun, Moon, Bell, Download } from "lucide-react";
+import { Sun, Moon, Download } from "lucide-react";
 import { useFinanceStore } from "@/store/useFinanceStore";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -14,6 +15,11 @@ interface HeaderProps {
 export function Header({ title, subtitle }: HeaderProps) {
   const { theme, setTheme } = useTheme();
   const { role, transactions } = useFinanceStore();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleExport = () => {
     const headers = ["Date", "Description", "Merchant", "Category", "Type", "Amount"];
@@ -42,12 +48,17 @@ export function Header({ title, subtitle }: HeaderProps) {
         >
           <Download className="w-3.5 h-3.5" /> Export CSV
         </button>
-        <button
-          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          className="w-9 h-9 rounded-lg border border-border hover:bg-accent flex items-center justify-center transition-colors text-muted-foreground hover:text-foreground"
-        >
-          {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-        </button>
+
+        {/* Only render theme toggle after mount to avoid hydration mismatch */}
+        {mounted && (
+          <button
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            className="w-9 h-9 rounded-lg border border-border hover:bg-accent flex items-center justify-center transition-colors text-muted-foreground hover:text-foreground"
+          >
+            {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          </button>
+        )}
+
         <div className={cn(
           "px-2.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wide",
           role === "admin" ? "bg-emerald-500/15 text-emerald-500" : "bg-blue-500/15 text-blue-500"
